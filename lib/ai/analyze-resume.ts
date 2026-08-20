@@ -1,9 +1,48 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import {
   resumeAnalysisSchema,
   type ResumeAnalysis,
 } from "@/lib/validations/resume-analysis";
+import { ANALYSIS } from "@/lib/config";
+
+export type AnalysisFailureKind =
+  | "timeout"
+  | "rate_limit"
+  | "billing"
+  | "configuration"
+  | "unavailable"
+  | "unknown";
+
+export function classifyAnalysisError(error: unknown): AnalysisFailureKind {
+  if (!(error instanceof Error)) return "unknown";
+
+  const details = error as Error & {
+    status?: number;
+    statusCode?: number;
+    cause?: { status?: number; statusCode?: number };
+  };
+  const status =
+    details.status ??
+    details.statusCode ??
+    details.cause?.status ??
+    details.cause?.statusCode;
+  const message = error.message.toLowerCase();
+
+  if (
+    error.name === "AbortError" ||
+    message.includes("aborted") ||
+    message.includes("timeout") ||
+    message.includes("timed out")
+  ) {
+    return "timeout";
+  }
+  if (status === 429) return "rate_limit";
+  if (status === 401 || status === 403) return "configuration";
+  if (status === 402 || message.includes("credit balance")) return "billing";
+  if (status && status >= 500) return "unavailable";
+  return "unknown";
+}
 
 // System prompt com regra anti-fabricação e critérios de pontuação.
 // O texto do currículo é tratado como DADO — nunca como instrução
@@ -44,11 +83,26 @@ CURRÍCULO:
 }
 
 export function getModel() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY não configurada no .env.local");
+  const apiKey =
+    process.env.THONYGG_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("THONYGG_API_KEY não configurada no .env.local");
   }
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
-  return anthropic(model);
+
+  const provider = createAnthropic({
+    apiKey,
+    baseURL:
+      process.env.THONYGG_BASE_URL || "https://api.thonygg.cloud/v1",
+  });
+  return provider(getAnalysisModelId());
+}
+
+export function getAnalysisModelId() {
+  return (
+    process.env.THONYGG_MODEL ||
+    process.env.ANTHROPIC_MODEL ||
+    "claude-sonnet-4-6"
+  );
 }
 
 export async function analyzeResume(input: {
@@ -60,7 +114,10 @@ export async function analyzeResume(input: {
     schema: resumeAnalysisSchema,
     system: SYSTEM_PROMPT,
     prompt: buildAnalysisPrompt(input),
+    abortSignal: AbortSignal.timeout(ANALYSIS.AI_TIMEOUT_MS),
+    maxRetries: ANALYSIS.AI_MAX_RETRIES,
   });
 
   return result.object;
 }
+
