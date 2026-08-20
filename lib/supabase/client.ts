@@ -45,5 +45,10 @@ export async function ensureSession() {
     );
   }
 
+  if (!data.session) {
+    throw new Error("Não foi possível iniciar uma sessão anônima.");
+  }
+
   return { supabase, session: data.session };
 }
+
