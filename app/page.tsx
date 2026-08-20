@@ -37,9 +37,17 @@ export default function Home() {
           </span>
           <span className="text-lg font-bold tracking-tight">CVMatch EU</span>
         </Link>
-        <span className="hidden rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-semibold text-emerald-800 shadow-sm backdrop-blur sm:inline-flex">
-          Feito para Portugal e Europa
-        </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/history"
+            className="text-sm font-semibold text-neutral-600 transition hover:text-emerald-700"
+          >
+            Minhas análises
+          </Link>
+          <span className="hidden rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-semibold text-emerald-800 shadow-sm backdrop-blur md:inline-flex">
+            Feito para Portugal e Europa
+          </span>
+        </div>
       </nav>
 
       <section className="relative mx-auto grid w-full max-w-7xl items-start gap-12 px-5 pb-20 pt-10 sm:px-8 sm:pt-16 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16 lg:px-10 lg:pb-28 lg:pt-20">
