@@ -96,7 +96,12 @@ export async function POST(request: NextRequest) {
   // 2. Análise com a IA (JSON estruturado e validado por zod).
   let analysis;
   try {
-    analysis = await analyzeResume({ text, market: body.market });
+    analysis = await analyzeResume({
+      text,
+      market: body.market,
+      targetRole: body.targetRole,
+      jobDescription: body.jobDescription,
+    });
   } catch (err) {
     const failure = classifyAnalysisError(err);
     console.error("[analyze] ai_failed", { failure });
@@ -131,6 +136,8 @@ export async function POST(request: NextRequest) {
       keywords: analysis.keywords,
       underrated_experience: analysis.underratedExperience,
       formatting_issues: analysis.formattingIssues,
+      target_role: body.targetRole ?? null,
+      job_match: analysis.jobMatch,
       is_paid: false,
     })
     .select("id")
