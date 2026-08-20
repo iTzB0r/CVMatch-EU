@@ -24,6 +24,15 @@ export type GetAnalysisResponse = {
   analysis: ResumeAnalysis | AnalysisPreview;
 };
 
+export type AnalysisListItem = {
+  id: string;
+  originalName: string;
+  targetRole: string | null;
+  score: number;
+  hasJobMatch: boolean;
+  createdAt: string;
+};
+
 // Formato da linha em resume_analyses (colunas jsonb).
 export type DbAnalysisRow = {
   id: string;
