@@ -79,11 +79,13 @@ const resumeAnalysisFields = {
 };
 
 export const resumeAnalysisAiSchema = z.object({
-  overallScore: z.number().int().min(0).max(100),
-  atsScore: z.number().int().min(0).max(100),
-  clarityScore: z.number().int().min(0).max(100),
-  impactScore: z.number().int().min(0).max(100),
-  europeanMarketScore: z.number().int().min(0).max(100),
+  // O servidor arredonda e limita as notas. Manter o schema da ferramenta
+  // permissivo evita rejeitar toda a resposta por um decimal ocasional.
+  overallScore: z.number(),
+  atsScore: z.number(),
+  clarityScore: z.number(),
+  impactScore: z.number(),
+  europeanMarketScore: z.number(),
   summary: z.string(),
   strengths: z.array(z.string()),
   problems: z.array(

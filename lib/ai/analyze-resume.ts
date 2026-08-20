@@ -25,6 +25,18 @@ export function classifyAnalysisError(error: unknown): AnalysisFailureKind {
     status?: number;
     statusCode?: number;
     responseBody?: string;
+    lastError?: {
+      status?: number;
+      statusCode?: number;
+      responseBody?: string;
+      message?: string;
+    };
+    errors?: Array<{
+      status?: number;
+      statusCode?: number;
+      responseBody?: string;
+      message?: string;
+    }>;
     cause?: {
       status?: number;
       statusCode?: number;
@@ -36,12 +48,19 @@ export function classifyAnalysisError(error: unknown): AnalysisFailureKind {
     details.status ??
     details.statusCode ??
     details.cause?.status ??
-    details.cause?.statusCode;
+    details.cause?.statusCode ??
+    details.lastError?.status ??
+    details.lastError?.statusCode ??
+    details.errors?.find((item) => item.status || item.statusCode)?.status ??
+    details.errors?.find((item) => item.status || item.statusCode)?.statusCode;
   const message = [
     error.message,
     details.responseBody,
     details.cause?.message,
     details.cause?.responseBody,
+    details.lastError?.message,
+    details.lastError?.responseBody,
+    ...(details.errors ?? []).flatMap((item) => [item.message, item.responseBody]),
   ]
     .filter(Boolean)
     .join(" ")
@@ -77,6 +96,7 @@ export function getSafeAnalysisErrorDetails(error: unknown) {
   const details = error as Error & {
     status?: number;
     statusCode?: number;
+    lastError?: { status?: number; statusCode?: number };
     cause?: { status?: number; statusCode?: number };
   };
 
@@ -87,6 +107,8 @@ export function getSafeAnalysisErrorDetails(error: unknown) {
       details.statusCode ??
       details.cause?.status ??
       details.cause?.statusCode ??
+      details.lastError?.status ??
+      details.lastError?.statusCode ??
       null,
   };
 }
@@ -170,17 +192,36 @@ export async function analyzeResume(input: {
   targetRole?: string | null;
   jobDescription?: string | null;
 }): Promise<ResumeAnalysis> {
-  const result = await generateObject({
-    model: getModel(),
-    schema: resumeAnalysisAiSchema,
-    system: SYSTEM_PROMPT,
-    prompt: buildAnalysisPrompt(input),
-    abortSignal: AbortSignal.timeout(ANALYSIS.AI_TIMEOUT_MS),
-    maxRetries: ANALYSIS.AI_MAX_RETRIES,
-    temperature: 0,
-  });
+  let aiObject: ResumeAnalysisAi | null = null;
+  let lastError: unknown;
 
-  const normalized = normalizeAiAnalysis(result.object);
+  for (let attempt = 0; attempt <= ANALYSIS.AI_INVALID_OUTPUT_RETRIES; attempt += 1) {
+    try {
+      const result = await generateObject({
+        model: getModel(),
+        schema: resumeAnalysisAiSchema,
+        system: SYSTEM_PROMPT,
+        prompt: buildAnalysisPrompt(input),
+        abortSignal: AbortSignal.timeout(ANALYSIS.AI_TIMEOUT_MS),
+        maxRetries: ANALYSIS.AI_MAX_RETRIES,
+        temperature: 0,
+      });
+      aiObject = result.object;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (
+        attempt >= ANALYSIS.AI_INVALID_OUTPUT_RETRIES ||
+        classifyAnalysisError(error) !== "invalid_output"
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  if (!aiObject) throw lastError;
+
+  const normalized = normalizeAiAnalysis(aiObject);
 
   return resumeAnalysisSchema.parse({
     ...normalized,
@@ -208,6 +249,11 @@ function normalizeAiAnalysis(
 
   return {
     ...analysis,
+    overallScore: normalizeScore(analysis.overallScore),
+    atsScore: normalizeScore(analysis.atsScore),
+    clarityScore: normalizeScore(analysis.clarityScore),
+    impactScore: normalizeScore(analysis.impactScore),
+    europeanMarketScore: normalizeScore(analysis.europeanMarketScore),
     summary: trimRequired(analysis.summary, 400),
     strengths: analysis.strengths.slice(0, 10),
     problems: analysis.problems.slice(0, 10),
@@ -219,6 +265,10 @@ function normalizeAiAnalysis(
         ? normalizedJobMatch
         : null,
   };
+}
+
+function normalizeScore(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 function trimRequired(value: string, maxLength: number) {

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --experimental-strip-types --test tests/job-match-calibration.test.ts",
+    "test": "node --experimental-strip-types --experimental-loader ./tests/typescript-path-loader.mjs --test tests/job-match-calibration.test.ts tests/analysis-errors.test.ts",
     "test:ai": "node --env-file=.env.local --experimental-strip-types --experimental-loader ./tests/typescript-path-loader.mjs tests/ai-accuracy-smoke.ts",
     "test:optimizer": "node --env-file=.env.local --experimental-strip-types --experimental-loader ./tests/typescript-path-loader.mjs tests/ai-optimizer-smoke.ts"
   },

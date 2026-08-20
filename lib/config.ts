@@ -15,6 +15,7 @@ export const ANALYSIS = {
   CLIENT_TIMEOUT_MS: 55_000,
   AI_TIMEOUT_MS: 45_000,
   AI_MAX_RETRIES: 1,
+  AI_INVALID_OUTPUT_RETRIES: 1,
   RATE_LIMIT: {
     // Cada análise grátis custa API. Limite por usuário por hora.
     MAX_PER_USER_PER_HOUR: 5,
