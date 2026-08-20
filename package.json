@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.40",
+    "@ai-sdk/anthropic": "^2.0.95",
     "@supabase/supabase-js": "^2.49.4",
     "ai": "^5.0.20",
     "clsx": "^2.1.1",
@@ -33,3 +33,4 @@
     "typescript": "^5.8.3"
   }
 }
+
