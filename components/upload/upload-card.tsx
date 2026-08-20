@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ensureSession } from "@/lib/supabase/client";
+import { ANALYSIS } from "@/lib/config";
 
 type Step = "idle" | "extracting" | "analyzing" | "error";
 
@@ -24,6 +25,12 @@ export function UploadCard() {
       if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
         setStep("error");
         setError("Envie um arquivo PDF.");
+        return;
+      }
+
+      if (file.size > ANALYSIS.MAX_FILE_BYTES) {
+        setStep("error");
+        setError("O PDF deve ter no máximo 10 MB.");
         return;
       }
 
@@ -51,9 +58,10 @@ export function UploadCard() {
             originalName: file.name,
             sizeBytes: file.size,
           }),
+          signal: AbortSignal.timeout(ANALYSIS.CLIENT_TIMEOUT_MS),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error(data.error ?? "Falha na análise. Tente novamente.");
         }
@@ -61,7 +69,16 @@ export function UploadCard() {
         router.push(`/analysis/${data.analysisId}`);
       } catch (err) {
         setStep("error");
-        setError(err instanceof Error ? err.message : "Algo deu errado. Tente novamente.");
+        const timedOut =
+          err instanceof Error &&
+          (err.name === "TimeoutError" || err.name === "AbortError");
+        setError(
+          timedOut
+            ? "A análise demorou mais que o esperado. Tente novamente em instantes."
+            : err instanceof Error
+              ? err.message
+              : "Algo deu errado. Tente novamente.",
+        );
       }
     },
     [jobDescription, router, targetRole],
@@ -227,4 +244,3 @@ export function UploadCard() {
     </div>
   );
 }
-

@@ -23,15 +23,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Sessão não autenticada." }, { status: 401 });
   }
 
-  let body;
+  let rawBody;
   try {
-    body = analyzeInputSchema.parse(await request.json());
+    rawBody = await request.json();
   } catch {
+    return NextResponse.json(
+      { error: "O corpo da requisição não contém JSON válido." },
+      { status: 400 },
+    );
+  }
+
+  const parsed = analyzeInputSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const fileTooLarge = parsed.error.issues.some(
+      (issue) => issue.path[0] === "sizeBytes" && issue.code === "too_big",
+    );
+    const textTooLong = parsed.error.issues.some(
+      (issue) => issue.path[0] === "text" && issue.code === "too_big",
+    );
+
+    if (fileTooLarge) {
+      return NextResponse.json(
+        { error: "O PDF deve ter no máximo 10 MB." },
+        { status: 413 },
+      );
+    }
+    if (textTooLong) {
+      return NextResponse.json(
+        { error: "O texto extraído deve ter no máximo 50 mil caracteres." },
+        { status: 413 },
+      );
+    }
+
     return NextResponse.json(
       { error: "Dados inválidos. Envie o texto extraído do currículo." },
       { status: 400 },
     );
   }
+
+  const body = parsed.data;
 
   const text = body.text.trim();
   if (text.length < ANALYSIS.MIN_TEXT_CHARS) {
@@ -189,4 +219,3 @@ function analysisFailureResponse(kind: AnalysisFailureKind) {
       };
   }
 }
-

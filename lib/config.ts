@@ -6,10 +6,13 @@
 export const PAYWALL_ENABLED = false;
 
 export const ANALYSIS = {
+  MAX_FILE_BYTES: 10 * 1024 * 1024,
+  MAX_PDF_PAGES: 30,
   // Mínimo de caracteres que o texto extraído precisa ter para considerarmos
   // que o PDF tem camada de texto (PDFs escaneados saem com pouco ou nada).
   MIN_TEXT_CHARS: 100,
   MAX_TEXT_CHARS: 50_000,
+  CLIENT_TIMEOUT_MS: 55_000,
   AI_TIMEOUT_MS: 45_000,
   AI_MAX_RETRIES: 1,
   RATE_LIMIT: {
@@ -18,4 +21,3 @@ export const ANALYSIS = {
     WINDOW_MS: 60 * 60 * 1000,
   },
 } as const;
-
