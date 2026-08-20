@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       </p>
       <div className="mt-8 flex flex-col gap-4 text-neutral-700">
         <p>
-          O CVMatch EU processa o texto do seu currículo apenas para gerar a
+          A PonteCV processa o texto do seu currículo apenas para gerar a
           análise solicitada. Não usamos seus dados para treinar modelos sem o
           seu consentimento explícito.
         </p>

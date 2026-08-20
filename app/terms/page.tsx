@@ -10,7 +10,7 @@ export default function TermsPage() {
       </p>
       <div className="mt-8 flex flex-col gap-4 text-neutral-700">
         <p>
-          O CVMatch EU oferece análise e recomendações para melhorar currículos
+          A PonteCV oferece análise e recomendações para melhorar currículos
           direcionados ao mercado europeu. As análises são geradas por
           inteligência artificial e têm caráter informativo — não garantem
           entrevistas, contratações ou aprovação em processos seletivos.

@@ -90,9 +90,9 @@ export function UploadCard() {
         <div>
           <label
             htmlFor="target-role"
-            className="mb-1 block text-sm font-medium text-neutral-700"
+            className="mb-1 block text-sm font-medium text-slate-700"
           >
-            Cargo desejado <span className="font-normal text-neutral-400">(opcional)</span>
+            Cargo desejado <span className="font-normal text-slate-400">(opcional)</span>
           </label>
           <input
             id="target-role"
@@ -101,15 +101,15 @@ export function UploadCard() {
             maxLength={120}
             placeholder="Ex.: Frontend Developer"
             disabled={step === "extracting" || step === "analyzing"}
-            className="w-full rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-neutral-50"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-slate-50"
           />
         </div>
         <div>
           <label
             htmlFor="job-description"
-            className="mb-1 block text-sm font-medium text-neutral-700"
+            className="mb-1 block text-sm font-medium text-slate-700"
           >
-            Descrição da vaga <span className="font-normal text-neutral-400">(opcional)</span>
+            Descrição da vaga <span className="font-normal text-slate-400">(opcional)</span>
           </label>
           <textarea
             id="job-description"
@@ -119,9 +119,9 @@ export function UploadCard() {
             rows={5}
             placeholder="Cole aqui os requisitos da vaga para receber uma porcentagem de compatibilidade verificável."
             disabled={step === "extracting" || step === "analyzing"}
-            className="w-full resize-y rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-neutral-50"
+            className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-slate-50"
           />
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="mt-1 text-xs text-slate-400">
             Sem a descrição, mostramos apenas a qualidade geral do currículo.
           </p>
         </div>
@@ -148,10 +148,10 @@ export function UploadCard() {
           const file = e.dataTransfer.files?.[0];
           if (file) void handleFile(file);
         }}
-        className={`cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all sm:p-10 ${
+        className={`cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center shadow-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 sm:p-10 ${
           dragging
-            ? "scale-[1.01] border-emerald-500 bg-emerald-50"
-            : "border-neutral-200 bg-neutral-50/70 hover:border-emerald-400 hover:bg-emerald-50/50"
+            ? "scale-[1.01] border-emerald-500 bg-emerald-50 shadow-lg"
+            : "border-slate-200 bg-slate-50 hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/60 hover:shadow-lg"
         }`}
       >
         <input
@@ -183,10 +183,10 @@ export function UploadCard() {
                 />
               </svg>
             </div>
-            <p className="text-base font-bold text-neutral-800 sm:text-lg">
+            <p className="text-base font-bold text-brand-navy sm:text-lg">
               Arraste seu currículo aqui ou clique para escolher
             </p>
-            <p className="mt-1 text-sm text-neutral-500">PDF, até 10 MB</p>
+            <p className="mt-1 text-sm text-slate-500">PDF, até 10 MB</p>
           </>
         )}
 
@@ -194,10 +194,10 @@ export function UploadCard() {
           <div className="flex flex-col items-center gap-4">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
             <div>
-              <p className="font-semibold text-neutral-800">
+              <p className="font-semibold text-brand-navy">
                 {fileName ? `Analisando ${fileName}` : "Analisando seu currículo"}
               </p>
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-slate-500">
                 {step === "extracting"
                   ? "Extraindo o texto do PDF…"
                   : "A IA está avaliando seu currículo. Isso leva de 20 a 60 segundos."}
@@ -226,7 +226,7 @@ export function UploadCard() {
             <p className="max-w-md text-sm font-medium text-red-700">{error}</p>
             <button
               onClick={() => setStep("idle")}
-              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
             >
               Tentar outro arquivo
             </button>
@@ -234,7 +234,7 @@ export function UploadCard() {
         )}
       </div>
 
-      <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-neutral-400">
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
         <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
           <path d="M6.5 8V6.5a3.5 3.5 0 1 1 7 0V8M5 8h10v8H5V8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>

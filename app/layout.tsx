@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
-  title: "CVMatch EU — Seu currículo pronto para a Europa",
+  title: "PonteCV — Seu currículo conectado à Europa",
   description:
-    "Descubra em segundos se o seu currículo está preparado para aquela vaga na Europa e otimize-o para aumentar sua compatibilidade.",
+    "Compare seu currículo com vagas na Europa e descubra sua compatibilidade com evidências claras e recomendações práticas.",
 };
 
 export default function RootLayout({
@@ -14,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body className={inter.variable}>{children}</body>
     </html>
   );
 }

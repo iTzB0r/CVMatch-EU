@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PonteCvLogo } from "@/components/brand/pontecv-logo";
 import { getSession } from "@/lib/supabase/client";
 import type { AnalysisListItem } from "@/lib/types";
 
@@ -98,15 +99,10 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-svh bg-[#f7faf8] px-5 py-8 text-neutral-950 sm:px-8">
+    <main className="technical-grid min-h-svh px-5 py-8 text-slate-950 sm:px-8">
       <div className="mx-auto w-full max-w-5xl">
         <nav className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5" aria-label="CVMatch EU">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-sm font-black text-white">
-              CV
-            </span>
-            <span className="font-bold">CVMatch EU</span>
-          </Link>
+          <PonteCvLogo showBadge={false} />
           <Link
             href="/"
             className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm hover:border-emerald-300 hover:text-emerald-700"
@@ -211,4 +207,3 @@ export default function HistoryPage() {
     </main>
   );
 }
-
