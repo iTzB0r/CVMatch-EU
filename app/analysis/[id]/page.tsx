@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/supabase/client";
 import { ResultsView } from "@/components/analysis/results-view";
+import { AnalysisFeedback } from "@/components/analysis/analysis-feedback";
+import { ResumeOptimizer } from "@/components/analysis/resume-optimizer";
 import type { GetAnalysisResponse } from "@/lib/types";
 
 type State =
@@ -89,6 +91,13 @@ export default function AnalysisPage() {
     );
   }
 
-  return <ResultsView locked={state.data.locked} analysis={state.data.analysis} />;
+  return (
+    <>
+      <ResultsView locked={state.data.locked} analysis={state.data.analysis} />
+      {!state.data.locked && state.data.analysis.jobMatch ? (
+        <ResumeOptimizer analysisId={analysisId} />
+      ) : null}
+      <AnalysisFeedback analysisId={analysisId} />
+    </>
+  );
 }
-

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test tests/job-match-calibration.test.ts",
+    "test:ai": "node --env-file=.env.local --experimental-strip-types --experimental-loader ./tests/typescript-path-loader.mjs tests/ai-accuracy-smoke.ts",
+    "test:optimizer": "node --env-file=.env.local --experimental-strip-types --experimental-loader ./tests/typescript-path-loader.mjs tests/ai-optimizer-smoke.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.95",
@@ -33,4 +36,3 @@
     "typescript": "^5.8.3"
   }
 }
-
