@@ -24,6 +24,21 @@ const severityStyles: Record<"low" | "medium" | "high", string> = {
   high: "bg-red-100 text-red-700",
 };
 
+const categoryLabels = {
+  technical: "Competências técnicas",
+  experience: "Experiência relevante",
+  mandatory: "Requisitos obrigatórios",
+  seniority: "Senioridade",
+  language_location: "Idioma e localização",
+  education: "Formação e certificações",
+} as const;
+
+const matchStatus = {
+  matched: { label: "Atendido", style: "bg-emerald-100 text-emerald-700" },
+  partial: { label: "Parcial", style: "bg-amber-100 text-amber-800" },
+  missing: { label: "Ausente", style: "bg-red-100 text-red-700" },
+} as const;
+
 function ScoreCard({
   label,
   score,
@@ -56,6 +71,99 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function Empty({ children }: { children: ReactNode }) {
   return <p className="text-sm text-neutral-400">{children}</p>;
+}
+
+function JobMatchSection({
+  jobMatch,
+}: {
+  jobMatch: NonNullable<ResumeAnalysis["jobMatch"]>;
+}) {
+  const totals = jobMatch.requirements.reduce(
+    (result, item) => ({
+      ...result,
+      [item.status]: result[item.status] + 1,
+    }),
+    { matched: 0, partial: 0, missing: 0 },
+  );
+
+  return (
+    <Section title="Compatibilidade CV × vaga">
+      <div className="grid gap-5 sm:grid-cols-[160px_1fr]">
+        <div className={`flex flex-col items-center justify-center rounded-2xl p-5 ring-1 ${bandStyles[bandOf(jobMatch.score)]}`}>
+          <span className="text-5xl font-bold">{jobMatch.score}%</span>
+          <span className="mt-1 text-center text-xs font-medium">
+            compatibilidade calculada
+          </span>
+        </div>
+        <div>
+          {jobMatch.targetRole ? (
+            <p className="font-semibold text-neutral-900">{jobMatch.targetRole}</p>
+          ) : null}
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
+            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700">
+              <strong className="block text-xl">{totals.matched}</strong> atendidos
+            </div>
+            <div className="rounded-xl bg-amber-50 p-3 text-amber-800">
+              <strong className="block text-xl">{totals.partial}</strong> parciais
+            </div>
+            <div className="rounded-xl bg-red-50 p-3 text-red-700">
+              <strong className="block text-xl">{totals.missing}</strong> ausentes
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-neutral-500">
+            A IA extrai os requisitos e as evidências; a porcentagem é calculada
+            no servidor com pesos fixos e requisitos obrigatórios valendo mais.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        {jobMatch.breakdown.map((item) => (
+          <div key={item.category} className="rounded-xl bg-neutral-50 p-3">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="font-medium text-neutral-700">
+                {categoryLabels[item.category]}
+              </span>
+              <strong className="text-neutral-900">{item.score}%</strong>
+            </div>
+            <p className="mt-1 text-xs text-neutral-400">
+              Peso {item.weight}% · {item.requirements} requisito(s)
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3">
+        {jobMatch.requirements.map((item, index) => (
+          <article key={`${item.requirement}-${index}`} className="rounded-xl border border-neutral-200 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium text-neutral-900">{item.requirement}</p>
+                <p className="mt-0.5 text-xs text-neutral-400">
+                  {categoryLabels[item.category]} · {item.importance === "required" ? "obrigatório" : "desejável"}
+                </p>
+              </div>
+              <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${matchStatus[item.status].style}`}>
+                {matchStatus[item.status].label}
+              </span>
+            </div>
+            {item.evidence ? (
+              <p className="mt-3 border-l-2 border-emerald-300 pl-3 text-sm text-neutral-600">
+                <span className="font-medium text-neutral-700">Evidência:</span>{" "}
+                {item.evidence}
+              </p>
+            ) : null}
+            {item.recommendation ? (
+              <p className="mt-2 text-sm text-neutral-600">
+                <span className="font-medium text-neutral-700">Ação:</span>{" "}
+                {item.recommendation}
+              </p>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </Section>
+  );
 }
 
 function FullSections({ analysis }: { analysis: ResumeAnalysis }) {
@@ -208,6 +316,8 @@ export function ResultsView({
         <ScoreCard label="Mercado europeu" score={analysis.europeanMarketScore} />
       </div>
 
+      {analysis.jobMatch ? <JobMatchSection jobMatch={analysis.jobMatch} /> : null}
+
       {/* Resumo */}
       <Section title="Resumo">
         <p className="text-neutral-700">{analysis.summary}</p>
@@ -259,3 +369,4 @@ export function ResultsView({
     </div>
   );
 }
+
