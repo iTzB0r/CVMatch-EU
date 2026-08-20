@@ -10,4 +10,11 @@ body {
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+  text-rendering: optimizeLegibility;
 }
+
+::selection {
+  background: #a7f3d0;
+  color: #064e3b;
+}
+
