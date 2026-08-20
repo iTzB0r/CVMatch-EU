@@ -10,9 +10,12 @@ export const ANALYSIS = {
   // que o PDF tem camada de texto (PDFs escaneados saem com pouco ou nada).
   MIN_TEXT_CHARS: 100,
   MAX_TEXT_CHARS: 50_000,
+  AI_TIMEOUT_MS: 45_000,
+  AI_MAX_RETRIES: 1,
   RATE_LIMIT: {
     // Cada análise grátis custa API. Limite por usuário por hora.
     MAX_PER_USER_PER_HOUR: 5,
     WINDOW_MS: 60 * 60 * 1000,
   },
 } as const;
+
