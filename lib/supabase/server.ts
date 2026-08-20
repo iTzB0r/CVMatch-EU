@@ -10,15 +10,16 @@ export function getSupabaseAdmin(): SupabaseClient {
   if (admin) return admin;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secretKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !serviceRoleKey) {
+  if (!url || !secretKey) {
     throw new Error(
-      "Supabase (admin) não configurado. Preencha NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no .env.local",
+      "Supabase (admin) não configurado. Preencha NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SECRET_KEY no .env.local",
     );
   }
 
-  admin = createClient(url, serviceRoleKey, {
+  admin = createClient(url, secretKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -39,3 +40,4 @@ export async function getUserFromBearerToken(
   if (error || !data.user) return null;
   return data.user;
 }
+
