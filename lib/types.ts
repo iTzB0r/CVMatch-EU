@@ -9,6 +9,7 @@ export type AnalysisPreview = {
   europeanMarketScore: number;
   summary: string;
   problems: ResumeAnalysis["problems"];
+  jobMatch: ResumeAnalysis["jobMatch"];
 };
 
 export type AnalyzeResponse = {
@@ -48,6 +49,8 @@ export type DbAnalysisRow = {
   keywords: { present: string[]; missing: string[] };
   underrated_experience: string[];
   formatting_issues: string[];
+  target_role: string | null;
+  job_match: ResumeAnalysis["jobMatch"] | null;
   is_paid: boolean;
   created_at: string;
 };
@@ -66,6 +69,7 @@ export function mapAnalysisRow(row: DbAnalysisRow): ResumeAnalysis {
     keywords: row.keywords ?? { present: [], missing: [] },
     underratedExperience: row.underrated_experience ?? [],
     formattingIssues: row.formatting_issues ?? [],
+    jobMatch: row.job_match ?? null,
   };
 }
 
@@ -78,5 +82,7 @@ export function buildPreview(a: ResumeAnalysis): AnalysisPreview {
     europeanMarketScore: a.europeanMarketScore,
     summary: a.summary,
     problems: a.problems.slice(0, 2),
+    jobMatch: a.jobMatch,
   };
 }
+
