@@ -68,8 +68,8 @@ export function UploadCard() {
   );
 
   return (
-    <div className="w-full max-w-xl">
-      <div className="mb-4 grid gap-3 text-left">
+    <div className="w-full">
+      <div className="mb-5 grid gap-4 text-left">
         <div>
           <label
             htmlFor="target-role"
@@ -84,7 +84,7 @@ export function UploadCard() {
             maxLength={120}
             placeholder="Ex.: Frontend Developer"
             disabled={step === "extracting" || step === "analyzing"}
-            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:bg-neutral-50"
+            className="w-full rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-neutral-50"
           />
         </div>
         <div>
@@ -102,7 +102,7 @@ export function UploadCard() {
             rows={5}
             placeholder="Cole aqui os requisitos da vaga para receber uma porcentagem de compatibilidade verificável."
             disabled={step === "extracting" || step === "analyzing"}
-            className="w-full resize-y rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:bg-neutral-50"
+            className="w-full resize-y rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100/70 disabled:bg-neutral-50"
           />
           <p className="mt-1 text-xs text-neutral-400">
             Sem a descrição, mostramos apenas a qualidade geral do currículo.
@@ -131,10 +131,10 @@ export function UploadCard() {
           const file = e.dataTransfer.files?.[0];
           if (file) void handleFile(file);
         }}
-        className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${
+        className={`cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all sm:p-10 ${
           dragging
-            ? "border-emerald-500 bg-emerald-50"
-            : "border-neutral-300 bg-white hover:border-emerald-400 hover:bg-emerald-50/40"
+            ? "scale-[1.01] border-emerald-500 bg-emerald-50"
+            : "border-neutral-200 bg-neutral-50/70 hover:border-emerald-400 hover:bg-emerald-50/50"
         }`}
       >
         <input
@@ -151,7 +151,7 @@ export function UploadCard() {
 
         {step === "idle" && (
           <>
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 shadow-sm">
               <svg
                 className="h-7 w-7 text-emerald-600"
                 fill="none"
@@ -166,7 +166,7 @@ export function UploadCard() {
                 />
               </svg>
             </div>
-            <p className="text-lg font-semibold text-neutral-800">
+            <p className="text-base font-bold text-neutral-800 sm:text-lg">
               Arraste seu currículo aqui ou clique para escolher
             </p>
             <p className="mt-1 text-sm text-neutral-500">PDF, até 10 MB</p>
@@ -217,7 +217,10 @@ export function UploadCard() {
         )}
       </div>
 
-      <p className="mt-3 text-center text-xs text-neutral-400">
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-neutral-400">
+        <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+          <path d="M6.5 8V6.5a3.5 3.5 0 1 1 7 0V8M5 8h10v8H5V8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
         Seus dados são tratados com privacidade. Você pode apagar sua análise a
         qualquer momento.
       </p>
