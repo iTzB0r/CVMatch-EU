@@ -8,6 +8,7 @@ import {
   analyzeResume,
   classifyAnalysisError,
   getAnalysisModelId,
+  getSafeAnalysisErrorDetails,
   type AnalysisFailureKind,
 } from "@/lib/ai/analyze-resume";
 import { ANALYSIS, PAYWALL_ENABLED } from "@/lib/config";
@@ -134,7 +135,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     const failure = classifyAnalysisError(err);
-    console.error("[analyze] ai_failed", { failure });
+    console.error("[analyze] ai_failed", {
+      failure,
+      ...getSafeAnalysisErrorDetails(err),
+    });
     await supabase.from("documents").update({ status: "failed" }).eq("id", document.id);
 
     const response = analysisFailureResponse(failure);
@@ -211,6 +215,11 @@ function analysisFailureResponse(kind: AnalysisFailureKind) {
       return {
         status: 503,
         message: "O serviço de análise está temporariamente indisponível.",
+      };
+    case "invalid_output":
+      return {
+        status: 502,
+        message: "A IA devolveu uma resposta incompleta. Tente novamente.",
       };
     default:
       return {

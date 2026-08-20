@@ -4,6 +4,7 @@ import {
   resumeAnalysisAiSchema,
   resumeAnalysisSchema,
   type ResumeAnalysis,
+  type ResumeAnalysisAi,
 } from "@/lib/validations/resume-analysis";
 import { ANALYSIS } from "@/lib/config";
 import { calculateJobMatch } from "@/lib/analysis/job-match";
@@ -13,6 +14,7 @@ export type AnalysisFailureKind =
   | "rate_limit"
   | "billing"
   | "configuration"
+  | "invalid_output"
   | "unavailable"
   | "unknown";
 
@@ -22,14 +24,28 @@ export function classifyAnalysisError(error: unknown): AnalysisFailureKind {
   const details = error as Error & {
     status?: number;
     statusCode?: number;
-    cause?: { status?: number; statusCode?: number };
+    responseBody?: string;
+    cause?: {
+      status?: number;
+      statusCode?: number;
+      responseBody?: string;
+      message?: string;
+    };
   };
   const status =
     details.status ??
     details.statusCode ??
     details.cause?.status ??
     details.cause?.statusCode;
-  const message = error.message.toLowerCase();
+  const message = [
+    error.message,
+    details.responseBody,
+    details.cause?.message,
+    details.cause?.responseBody,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
   if (
     error.name === "AbortError" ||
@@ -42,8 +58,37 @@ export function classifyAnalysisError(error: unknown): AnalysisFailureKind {
   if (status === 429) return "rate_limit";
   if (status === 401 || status === 403) return "configuration";
   if (status === 402 || message.includes("credit balance")) return "billing";
+  if (
+    message.includes("tool_use_failed") ||
+    message.includes("did not match schema") ||
+    message.includes("no object generated")
+  ) {
+    return "invalid_output";
+  }
   if (status && status >= 500) return "unavailable";
   return "unknown";
+}
+
+export function getSafeAnalysisErrorDetails(error: unknown) {
+  if (!(error instanceof Error)) {
+    return { name: "UnknownError", status: null };
+  }
+
+  const details = error as Error & {
+    status?: number;
+    statusCode?: number;
+    cause?: { status?: number; statusCode?: number };
+  };
+
+  return {
+    name: error.name,
+    status:
+      details.status ??
+      details.statusCode ??
+      details.cause?.status ??
+      details.cause?.statusCode ??
+      null,
+  };
 }
 
 // System prompt com regra anti-fabricação e critérios de pontuação.
@@ -135,9 +180,53 @@ export async function analyzeResume(input: {
     temperature: 0,
   });
 
+  const normalized = normalizeAiAnalysis(result.object);
+
   return resumeAnalysisSchema.parse({
-    ...result.object,
-    jobMatch: calculateJobMatch(result.object.jobMatch),
+    ...normalized,
+    jobMatch: calculateJobMatch(normalized.jobMatch),
   });
 }
 
+function normalizeAiAnalysis(
+  analysis: ResumeAnalysisAi,
+) {
+  const normalizedJobMatch = analysis.jobMatch
+    ? {
+        targetRole: trimNullable(analysis.jobMatch.targetRole, 120),
+        requirements: analysis.jobMatch.requirements
+          .map((item) => ({
+            ...item,
+            requirement: trimRequired(item.requirement, 200),
+            evidence: trimNullable(item.evidence, 300),
+            recommendation: trimNullable(item.recommendation, 300),
+          }))
+          .filter((item) => item.requirement.length > 0)
+          .slice(0, 30),
+      }
+    : null;
+
+  return {
+    ...analysis,
+    summary: trimRequired(analysis.summary, 400),
+    strengths: analysis.strengths.slice(0, 10),
+    problems: analysis.problems.slice(0, 10),
+    recommendations: analysis.recommendations.slice(0, 10),
+    underratedExperience: analysis.underratedExperience.slice(0, 5),
+    formattingIssues: analysis.formattingIssues.slice(0, 5),
+    jobMatch:
+      normalizedJobMatch && normalizedJobMatch.requirements.length > 0
+        ? normalizedJobMatch
+        : null,
+  };
+}
+
+function trimRequired(value: string, maxLength: number) {
+  return value.trim().slice(0, maxLength);
+}
+
+function trimNullable(value: string | null, maxLength: number) {
+  if (value === null) return null;
+  const trimmed = value.trim().slice(0, maxLength);
+  return trimmed.length > 0 ? trimmed : null;
+}
