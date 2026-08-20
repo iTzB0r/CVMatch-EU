@@ -13,6 +13,8 @@ export function UploadCard() {
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [targetRole, setTargetRole] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -44,6 +46,8 @@ export function UploadCard() {
           body: JSON.stringify({
             text,
             market: "pt",
+            targetRole: targetRole.trim() || null,
+            jobDescription: jobDescription.trim() || null,
             originalName: file.name,
             sizeBytes: file.size,
           }),
@@ -60,11 +64,51 @@ export function UploadCard() {
         setError(err instanceof Error ? err.message : "Algo deu errado. Tente novamente.");
       }
     },
-    [router],
+    [jobDescription, router, targetRole],
   );
 
   return (
     <div className="w-full max-w-xl">
+      <div className="mb-4 grid gap-3 text-left">
+        <div>
+          <label
+            htmlFor="target-role"
+            className="mb-1 block text-sm font-medium text-neutral-700"
+          >
+            Cargo desejado <span className="font-normal text-neutral-400">(opcional)</span>
+          </label>
+          <input
+            id="target-role"
+            value={targetRole}
+            onChange={(event) => setTargetRole(event.target.value)}
+            maxLength={120}
+            placeholder="Ex.: Frontend Developer"
+            disabled={step === "extracting" || step === "analyzing"}
+            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:bg-neutral-50"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="job-description"
+            className="mb-1 block text-sm font-medium text-neutral-700"
+          >
+            Descrição da vaga <span className="font-normal text-neutral-400">(opcional)</span>
+          </label>
+          <textarea
+            id="job-description"
+            value={jobDescription}
+            onChange={(event) => setJobDescription(event.target.value)}
+            maxLength={15_000}
+            rows={5}
+            placeholder="Cole aqui os requisitos da vaga para receber uma porcentagem de compatibilidade verificável."
+            disabled={step === "extracting" || step === "analyzing"}
+            className="w-full resize-y rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:bg-neutral-50"
+          />
+          <p className="mt-1 text-xs text-neutral-400">
+            Sem a descrição, mostramos apenas a qualidade geral do currículo.
+          </p>
+        </div>
+      </div>
       <div
         role="button"
         tabIndex={0}
@@ -180,3 +224,4 @@ export function UploadCard() {
     </div>
   );
 }
+
