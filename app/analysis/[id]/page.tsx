@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/supabase/client";
 import { ResultsView } from "@/components/analysis/results-view";
 import type { GetAnalysisResponse } from "@/lib/types";
@@ -81,12 +82,13 @@ export default function AnalysisPage() {
     return (
       <main className="mx-auto flex min-h-svh max-w-lg flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-semibold text-neutral-900">{state.message}</p>
-        <a href="/" className="text-emerald-600 hover:underline">
+        <Link href="/" className="text-emerald-600 hover:underline">
           Voltar à página inicial
-        </a>
+        </Link>
       </main>
     );
   }
 
   return <ResultsView locked={state.data.locked} analysis={state.data.analysis} />;
 }
+
