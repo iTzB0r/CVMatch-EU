@@ -4,8 +4,12 @@ import {
   getSupabaseAdmin,
   getUserFromBearerToken,
 } from "@/lib/supabase/server";
-import { analyzeResume } from "@/lib/ai/analyze-resume";
-import { isRateLimited } from "@/lib/rate-limit";
+import {
+  analyzeResume,
+  classifyAnalysisError,
+  getAnalysisModelId,
+  type AnalysisFailureKind,
+} from "@/lib/ai/analyze-resume";
 import { ANALYSIS, PAYWALL_ENABLED } from "@/lib/config";
 import { buildPreview } from "@/lib/types";
 
@@ -17,19 +21,6 @@ export async function POST(request: NextRequest) {
   const user = await getUserFromBearerToken(request.headers.get("authorization"));
   if (!user) {
     return NextResponse.json({ error: "Sessão não autenticada." }, { status: 401 });
-  }
-
-  if (
-    isRateLimited(
-      `analyze:${user.id}`,
-      ANALYSIS.RATE_LIMIT.MAX_PER_USER_PER_HOUR,
-      ANALYSIS.RATE_LIMIT.WINDOW_MS,
-    )
-  ) {
-    return NextResponse.json(
-      { error: "Você atingiu o limite de análises gratuitas. Tente novamente mais tarde." },
-      { status: 429 },
-    );
   }
 
   let body;
@@ -54,6 +45,31 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = getSupabaseAdmin();
+
+  // Rate limit persistente: funciona mesmo com várias instâncias do servidor.
+  const windowStart = new Date(
+    Date.now() - ANALYSIS.RATE_LIMIT.WINDOW_MS,
+  ).toISOString();
+  const { count: recentAnalyses, error: countError } = await supabase
+    .from("documents")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("created_at", windowStart);
+
+  if (countError) {
+    console.error("[analyze] rate_limit_check_failed");
+    return NextResponse.json(
+      { error: "Não foi possível iniciar a análise agora. Tente novamente." },
+      { status: 503 },
+    );
+  }
+
+  if ((recentAnalyses ?? 0) >= ANALYSIS.RATE_LIMIT.MAX_PER_USER_PER_HOUR) {
+    return NextResponse.json(
+      { error: "Você atingiu o limite de análises. Tente novamente mais tarde." },
+      { status: 429 },
+    );
+  }
 
   // 1. Registra o documento (só o texto extraído — binário não é armazenado).
   const { data: document, error: docError } = await supabase
@@ -82,11 +98,14 @@ export async function POST(request: NextRequest) {
   try {
     analysis = await analyzeResume({ text, market: body.market });
   } catch (err) {
-    console.error("[analyze] AI error:", err);
+    const failure = classifyAnalysisError(err);
+    console.error("[analyze] ai_failed", { failure });
     await supabase.from("documents").update({ status: "failed" }).eq("id", document.id);
+
+    const response = analysisFailureResponse(failure);
     return NextResponse.json(
-      { error: "A análise falhou. Tente novamente em instantes." },
-      { status: 502 },
+      { error: response.message },
+      { status: response.status },
     );
   }
 
@@ -96,8 +115,8 @@ export async function POST(request: NextRequest) {
     .insert({
       document_id: document.id,
       user_id: user.id,
-      provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
+      provider: "thonygg",
+      model: getAnalysisModelId(),
       scores: {
         overall: analysis.overallScore,
         ats: analysis.atsScore,
@@ -136,3 +155,31 @@ export async function POST(request: NextRequest) {
     analysis: locked ? buildPreview(analysis) : analysis,
   });
 }
+
+function analysisFailureResponse(kind: AnalysisFailureKind) {
+  switch (kind) {
+    case "timeout":
+      return {
+        status: 504,
+        message: "A análise demorou mais que o esperado. Tente novamente.",
+      };
+    case "rate_limit":
+    case "unavailable":
+      return {
+        status: 503,
+        message: "O serviço de análise está ocupado. Tente novamente em instantes.",
+      };
+    case "billing":
+    case "configuration":
+      return {
+        status: 503,
+        message: "O serviço de análise está temporariamente indisponível.",
+      };
+    default:
+      return {
+        status: 502,
+        message: "A análise falhou. Tente novamente em instantes.",
+      };
+  }
+}
+
