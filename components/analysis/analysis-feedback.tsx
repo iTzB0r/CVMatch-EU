@@ -82,16 +82,18 @@ export function AnalysisFeedback({ analysisId }: { analysisId: string }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-6 pb-12">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Esta análise foi útil?
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Sua resposta ajuda a PonteCV a calibrar a assertividade do Match Score.
-        </p>
+    <section className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">Ajude a calibrar</p>
+            <h2 className="mt-1.5 text-lg font-bold text-[#0F2847]">Esta análise foi útil?</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Sua resposta melhora a assertividade do Match Score.
+            </p>
+          </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3">
           <button
             type="button"
             aria-pressed={helpful === true}
@@ -116,10 +118,11 @@ export function AnalysisFeedback({ analysisId }: { analysisId: string }) {
           >
             Ainda não
           </button>
+          </div>
         </div>
 
         {helpful !== null ? (
-          <div className="mt-4">
+          <div className="mt-5 border-t border-slate-100 pt-5">
             <label htmlFor="analysis-feedback-comment" className="text-sm font-medium text-slate-700">
               Conte o que acertou ou o que precisa melhorar (opcional)
             </label>
