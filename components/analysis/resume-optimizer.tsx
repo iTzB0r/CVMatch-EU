@@ -11,6 +11,7 @@ export function ResumeOptimizer({ analysisId }: { analysisId: string }) {
   const [optimization, setOptimization] = useState<ResumeOptimization | null>(null);
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [exportMessage, setExportMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -81,6 +82,58 @@ export function ResumeOptimizer({ analysisId }: { analysisId: string }) {
     URL.revokeObjectURL(url);
   }
 
+  function printResume() {
+    if (!optimization) return;
+
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) {
+      setExportMessage("O navegador bloqueou a janela. Permita pop-ups e tente novamente.");
+      return;
+    }
+
+    printWindow.opener = null;
+    const { document } = printWindow;
+    document.title = `${optimization.title} — PonteCV`;
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @page { size: A4; margin: 18mm 17mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: #0f172a;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      main { max-width: 176mm; margin: 0 auto; }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font: 10.5pt/1.52 Arial, Helvetica, sans-serif;
+      }
+      @media screen {
+        body { padding: 40px; background: #f1f5f9; }
+        main { min-height: 257mm; padding: 18mm 17mm; background: white; box-shadow: 0 18px 50px rgba(15, 23, 42, .14); }
+      }
+      @media print { main { max-width: none; } }
+    `;
+
+    const main = document.createElement("main");
+    const resume = document.createElement("pre");
+    resume.textContent = optimization.optimizedResume;
+    main.appendChild(resume);
+    document.head.appendChild(style);
+    document.body.appendChild(main);
+    document.close();
+
+    setExportMessage("Versão limpa aberta. Escolha “Salvar como PDF” na impressão.");
+    window.setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 250);
+  }
+
   return (
     <section className="mx-auto w-full max-w-6xl px-4 pb-5 sm:px-6 lg:px-8">
       <div className="overflow-hidden rounded-[2rem] border border-emerald-200 bg-white shadow-[0_24px_60px_-40px_rgba(15,40,71,0.7)]">
@@ -124,15 +177,27 @@ export function ResumeOptimizer({ analysisId }: { analysisId: string }) {
                 </p>
                 <h3 className="mt-1 text-xl font-bold text-slate-900">{optimization.title}</h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => void copyResume()} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
                   {copied ? "Copiado!" : "Copiar"}
                 </button>
                 <button type="button" onClick={downloadResume} className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md">
                   Baixar TXT
                 </button>
+                <button type="button" onClick={printResume} className="inline-flex items-center gap-2 rounded-xl bg-[#0F2847] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md">
+                  <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+                    <path d="M5 7V3.5h10V7M5 14H3.5A1.5 1.5 0 0 1 2 12.5v-4A1.5 1.5 0 0 1 3.5 7h13A1.5 1.5 0 0 1 18 8.5v4a1.5 1.5 0 0 1-1.5 1.5H15m-10-3h10v5.5H5V11Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                  </svg>
+                  Salvar em PDF
+                </button>
               </div>
             </div>
+
+            {exportMessage ? (
+              <p className="mt-3 text-sm font-medium text-slate-500" role="status">
+                {exportMessage}
+              </p>
+            ) : null}
 
             <pre className="mt-5 max-h-[620px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-5 font-sans text-sm leading-6 text-slate-800">
               {optimization.optimizedResume}
